@@ -5,6 +5,7 @@ import android.content.Context;
 import android.os.Build;
 import android.os.Handler;
 import android.os.Looper;
+import android.os.SystemClock;
 import android.provider.Settings;
 import android.util.AttributeSet;
 
@@ -425,6 +426,7 @@ public final class ExtraKeysView extends GridLayout {
                             view.setBackgroundColor(mButtonActiveBackgroundColor);
                             // Start long press scheduled executors which will be stopped in next MotionEvent
                             startScheduledExecutors(view, buttonInfo, button);
+                            onHoldButtonDown(buttonInfo);
                             return true;
 
                         case MotionEvent.ACTION_MOVE:
@@ -445,11 +447,14 @@ public final class ExtraKeysView extends GridLayout {
                         case MotionEvent.ACTION_CANCEL:
                             view.setBackgroundColor(mButtonBackgroundColor);
                             stopScheduledExecutors();
+                            onHoldButtonCancel(buttonInfo);
                             return true;
 
                         case MotionEvent.ACTION_UP:
                             view.setBackgroundColor(mButtonBackgroundColor);
                             stopScheduledExecutors();
+                            // A real hold on a hold button ends here and is not a click
+                            if (onHoldButtonUp(buttonInfo)) return true;
                             // If ACTION_UP up was not from a repetitive key or was with a key with a popup button
                             if (mLongPressCount == 0 || mPopupWindow != null) {
                                 // Trigger popup button click if swipe up complete
@@ -543,7 +548,7 @@ public final class ExtraKeysView extends GridLayout {
                 mLongPressCount++;
                 onExtraKeyButtonClick(view, buttonInfo, button);
             }, mLongPressTimeout, mLongPressRepeatDelay, TimeUnit.MILLISECONDS);
-        } else if (isSpecialButton(buttonInfo)) {
+        } else if (isSpecialButton(buttonInfo) && !isHoldButton(buttonInfo)) {
             // Lock the key if long pressed by running mSpecialButtonsLongHoldRunnable after
             // waiting for mLongPressTimeout milliseconds. If user does not long press, then the
             // ACTION_UP triggered will cancel the runnable by calling stopScheduledExecutors before
@@ -555,6 +560,53 @@ public final class ExtraKeysView extends GridLayout {
             mSpecialButtonsLongHoldRunnable = new SpecialButtonsLongHoldRunnable(state);
             mHandler.postDelayed(mSpecialButtonsLongHoldRunnable, mLongPressTimeout);
         }
+    }
+
+    /**
+     * Check whether a {@link ExtraKeyButton} is a {@link SpecialButton} that acts like a real
+     * modifier key: it is active for as long as a finger is held on it, so that other keys can be
+     * typed with another finger meanwhile, and is released when the finger is lifted.
+     * A quick tap still toggles the button like for the other special buttons.
+     */
+    public boolean isHoldButton(ExtraKeyButton buttonInfo) {
+        return isSpecialButton(buttonInfo) && SpecialButton.SHIFT.getKey().equals(buttonInfo.getKey());
+    }
+
+    private void onHoldButtonDown(ExtraKeyButton buttonInfo) {
+        if (!isHoldButton(buttonInfo)) return;
+        SpecialButtonState state = mSpecialButtons.get(SpecialButton.valueOf(buttonInfo.getKey()));
+        if (state == null) return;
+        state.heldWasActive = state.isActive;
+        state.heldConsumed = false;
+        state.heldSince = SystemClock.uptimeMillis();
+        state.isHeld = true;
+        state.setIsLocked(false);
+        state.setIsActive(true);
+    }
+
+    /** @return {@code true} if the touch was a real hold that has been fully handled. */
+    private boolean onHoldButtonUp(ExtraKeyButton buttonInfo) {
+        if (!isHoldButton(buttonInfo)) return false;
+        SpecialButtonState state = mSpecialButtons.get(SpecialButton.valueOf(buttonInfo.getKey()));
+        if (state == null || !state.isHeld) return false;
+        state.isHeld = false;
+        boolean wasTap = !state.heldConsumed &&
+            SystemClock.uptimeMillis() - state.heldSince < mLongPressTimeout;
+        if (wasTap) {
+            // Restore the previous state and let the click toggle it as usual
+            state.setIsActive(state.heldWasActive);
+            return false;
+        }
+        state.setIsActive(false);
+        return true;
+    }
+
+    private void onHoldButtonCancel(ExtraKeyButton buttonInfo) {
+        if (!isHoldButton(buttonInfo)) return;
+        SpecialButtonState state = mSpecialButtons.get(SpecialButton.valueOf(buttonInfo.getKey()));
+        if (state == null || !state.isHeld) return;
+        state.isHeld = false;
+        state.setIsActive(state.heldWasActive);
     }
 
     public void stopScheduledExecutors() {
@@ -647,8 +699,12 @@ public final class ExtraKeysView extends GridLayout {
         if (!state.isCreated || !state.isActive)
             return false;
 
+        // A held button stays active until the finger is lifted
+        if (state.isHeld)
+            state.heldConsumed = true;
+
         // Disable active state only if not locked
-        if (autoSetInActive && !state.isLocked)
+        if (autoSetInActive && !state.isLocked && !state.isHeld)
             state.setIsActive(false);
 
         return true;

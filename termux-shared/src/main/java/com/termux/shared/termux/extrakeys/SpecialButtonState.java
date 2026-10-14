@@ -15,6 +15,16 @@ public class SpecialButtonState {
     /** If special button is locked due to long hold on it and should not be deactivated if its
      * state is read. */
     boolean isLocked = false;
+    /** If special button is currently being physically held down by a finger, like a real
+     * modifier key. Only used by buttons that support hold behaviour, see
+     * {@link ExtraKeysView#isHoldButton(ExtraKeyButton)}. */
+    boolean isHeld = false;
+    /** If a key press consumed the modifier while it was being held. */
+    boolean heldConsumed = false;
+    /** The {@link #isActive} state before the current hold started. */
+    boolean heldWasActive = false;
+    /** The {@link android.os.SystemClock#uptimeMillis()} at which the current hold started. */
+    long heldSince = 0;
 
     List<MaterialButton> buttons = new ArrayList<>();
 
