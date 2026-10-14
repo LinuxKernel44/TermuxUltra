@@ -1,6 +1,7 @@
 package com.termux.app.activities;
 
 import android.content.Context;
+import android.content.Intent;
 import android.os.Bundle;
 import android.os.Environment;
 
@@ -59,6 +60,14 @@ public class SettingsActivity extends AppCompatActivity {
             if (context == null) return;
 
             setPreferencesFromResource(R.xml.root_preferences, rootKey);
+
+            Preference termuxUltraAboutPreference = findPreference("termuxultra_about");
+            if (termuxUltraAboutPreference != null) {
+                termuxUltraAboutPreference.setOnPreferenceClickListener(preference -> {
+                    startActivity(new Intent(context, AboutActivity.class));
+                    return true;
+                });
+            }
 
             new Thread() {
                 @Override

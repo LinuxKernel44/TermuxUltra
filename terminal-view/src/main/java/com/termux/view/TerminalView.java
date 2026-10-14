@@ -7,6 +7,7 @@ import android.content.ClipData;
 import android.content.ClipboardManager;
 import android.content.Context;
 import android.graphics.Canvas;
+import android.graphics.Paint;
 import android.graphics.Typeface;
 import android.os.Build;
 import android.os.Handler;
@@ -1031,6 +1032,8 @@ public final class TerminalView extends View {
 
             mRenderer.render(mEmulator, canvas, mTopRow, sel[0], sel[1], sel[2], sel[3]);
 
+            drawSearchHighlights(canvas);
+
             // render the text selection handles
             renderTextSelection();
         }
@@ -1038,6 +1041,58 @@ public final class TerminalView extends View {
 
     public TerminalSession getCurrentSession() {
         return mTermSession;
+    }
+
+    /** Segments (row, startColumn, endColumn exclusive triplets) of all search matches to highlight. */
+    private int[] mSearchSegments = null;
+    /** Segments of the current search match, drawn with a stronger color. */
+    private int[] mSearchCurrentSegments = null;
+    private Paint mSearchPaint;
+
+    private static final int SEARCH_MATCH_COLOR = 0x70FFD600;
+    private static final int SEARCH_CURRENT_MATCH_COLOR = 0xB0FF6D00;
+
+    /**
+     * Highlight search matches over the terminal text.
+     *
+     * @param allSegments The segments of all the matches, or null to clear highlights.
+     * @param currentSegments The segments of the match to emphasize, or null.
+     */
+    public void setSearchHighlights(int[] allSegments, int[] currentSegments) {
+        mSearchSegments = allSegments;
+        mSearchCurrentSegments = currentSegments;
+        invalidate();
+    }
+
+    /** Scroll the terminal so that {@code row} is shown, roughly in the middle of the screen. */
+    public void scrollToRow(int row) {
+        if (mEmulator == null) return;
+        int minTopRow = -mEmulator.getScreen().getActiveTranscriptRows();
+        int topRow = row - mEmulator.mRows / 2;
+        setTopRow(Math.max(minTopRow, Math.min(0, topRow)));
+        invalidate();
+    }
+
+    private void drawSearchHighlights(Canvas canvas) {
+        if (mSearchSegments == null && mSearchCurrentSegments == null) return;
+        if (mSearchPaint == null) mSearchPaint = new Paint();
+        drawSegments(canvas, mSearchSegments, SEARCH_MATCH_COLOR);
+        drawSegments(canvas, mSearchCurrentSegments, SEARCH_CURRENT_MATCH_COLOR);
+    }
+
+    private void drawSegments(Canvas canvas, int[] segments, int color) {
+        if (segments == null) return;
+        mSearchPaint.setColor(color);
+        final int firstVisibleRow = mTopRow;
+        final int lastVisibleRow = mTopRow + mEmulator.mRows - 1;
+        for (int i = 0; i + 2 < segments.length; i += 3) {
+            final int row = segments[i];
+            if (row < firstVisibleRow || row > lastVisibleRow) continue;
+            final float bottom = mRenderer.mFontLineSpacingAndAscent + (row - mTopRow + 1) * mRenderer.mFontLineSpacing;
+            final float top = bottom - mRenderer.mFontLineSpacing;
+            canvas.drawRect(segments[i + 1] * mRenderer.mFontWidth, top,
+                segments[i + 2] * mRenderer.mFontWidth, bottom, mSearchPaint);
+        }
     }
 
     private CharSequence getText() {

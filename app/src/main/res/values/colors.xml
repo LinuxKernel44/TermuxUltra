@@ -1,3 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
+    <color name="termuxultra_accent">#39FF14</color>
+    <color name="termuxultra_bar_background">#FF050805</color>
+    <color name="termuxultra_unread_dot">#FFD600</color>
 </resources>

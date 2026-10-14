@@ -882,6 +882,13 @@ public final class TermuxService extends Service implements AppShell.AppShellCli
         return mShellManager.mTermuxSessions;
     }
 
+    /** Move the session at index {@code from} to index {@code to}, shifting the ones in between. */
+    public synchronized void moveTermuxSession(int from, int to) {
+        List<TermuxSession> sessions = mShellManager.mTermuxSessions;
+        if (from == to || from < 0 || to < 0 || from >= sessions.size() || to >= sessions.size()) return;
+        sessions.add(to, sessions.remove(from));
+    }
+
     @Nullable
     public synchronized TermuxSession getTermuxSession(int index) {
         if (index >= 0 && index < mShellManager.mTermuxSessions.size())

@@ -1,0 +1,40 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:id="@+id/tab_bar"
+    android:layout_width="match_parent"
+    android:layout_height="44dp"
+    android:background="@drawable/tab_bar_background"
+    android:orientation="horizontal">
+
+    <HorizontalScrollView
+        android:id="@+id/tab_bar_scroll"
+        android:layout_width="0dp"
+        android:layout_height="match_parent"
+        android:layout_weight="1"
+        android:fillViewport="false"
+        android:overScrollMode="never"
+        android:scrollbars="none">
+
+        <LinearLayout
+            android:id="@+id/tab_bar_tabs"
+            android:layout_width="wrap_content"
+            android:layout_height="match_parent"
+            android:orientation="horizontal" />
+    </HorizontalScrollView>
+
+    <ImageButton
+        android:id="@+id/tab_bar_add_button"
+        android:layout_width="44dp"
+        android:layout_height="match_parent"
+        android:background="?attr/selectableItemBackgroundBorderless"
+        android:contentDescription="@string/action_new_session"
+        android:src="@drawable/ic_tab_add" />
+
+    <ImageButton
+        android:id="@+id/tab_bar_more_button"
+        android:layout_width="44dp"
+        android:layout_height="match_parent"
+        android:background="?attr/selectableItemBackgroundBorderless"
+        android:contentDescription="@string/tab_bar_more"
+        android:src="@drawable/ic_tab_more" />
+</LinearLayout>

@@ -13,8 +13,32 @@ It is currently a lightly customized build of upstream Termux: new name, new lau
 - App name is **TermuxUltra** (launcher label, notifications, log tags).
 - New launcher icon: adaptive, with a monochrome layer for Android 13+ themed icons. The source is [`art/termuxultra_icon.svg`](art/termuxultra_icon.svg).
 - Release builds are signed with the TermuxUltra key (see [Signing](#signing)).
+- SHIFT in the default extra keys, held like a real modifier key.
+- **Tab bar** instead of the left drawer, see [Tab bar](#tab-bar).
+- **Search** in the terminal history, see [Search](#search).
+- An **About TermuxUltra** screen.
 
 Everything else, including the terminal, bootstrap packages and `pkg`, behaves like upstream Termux.
+
+## Tab bar
+
+The sessions are tabs in a bar over the top of the terminal. The left drawer is gone.
+
+- Swipe down from the top edge of the terminal to show the bar. Swipe up on it to hide it. It hides itself after a few seconds, the delay is set in Settings > Tab bar.
+- It appears for a moment when you switch to another session.
+- Tap a tab to open it, tap its cross to close it. Closing a tab with a running process asks for confirmation.
+- Long press a tab for rename, kill and close. Long press then drag to reorder the tabs.
+- A dot on a tab means that a background session printed something or rang the bell.
+- `+` creates a session, and a long press on it creates a named or failsafe one. The menu has search, keyboard, extra keys, settings and about.
+
+## Search
+
+Open it from the tab bar menu or from the long press menu of the terminal.
+
+- Searches the whole scrollback as you type, highlights every match and jumps with the arrows. The counter shows the position among the matches.
+- `Aa` makes the search case sensitive, `.*` uses regular expressions.
+- `All tabs` lists the matches of every session, grouped by tab. Tap one to go to that tab and line.
+- `Shell history` searches `~/.bash_history` and `~/.zsh_history`. Tap a command to put it at the prompt without running it, long press to copy it. Bash only writes its history when a shell exits, unless you set `PROMPT_COMMAND="history -a"`.
 
 ## Package name
 

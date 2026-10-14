@@ -5,7 +5,6 @@ import android.view.Gravity;
 import android.view.View;
 
 import androidx.annotation.NonNull;
-import androidx.drawerlayout.widget.DrawerLayout;
 
 import com.termux.app.TermuxActivity;
 import com.termux.app.terminal.TermuxTerminalSessionActivityClient;
@@ -88,11 +87,8 @@ public class TermuxTerminalExtraKeys extends TerminalExtraKeys {
             if(mTermuxTerminalViewClient != null)
                 mTermuxTerminalViewClient.onToggleSoftKeyboardRequest();
         } else if ("DRAWER".equals(key)) {
-            DrawerLayout drawerLayout = mTermuxTerminalViewClient.getActivity().getDrawer();
-            if (drawerLayout.isDrawerOpen(Gravity.LEFT))
-                drawerLayout.closeDrawer(Gravity.LEFT);
-            else
-                drawerLayout.openDrawer(Gravity.LEFT);
+            // The former drawer is now the tab bar.
+            mTermuxTerminalViewClient.getActivity().getTabBarController().toggle();
         } else if ("PASTE".equals(key)) {
             if(mTermuxTerminalSessionActivityClient != null)
                 mTermuxTerminalSessionActivityClient.onPasteTextFromClipboard(null);

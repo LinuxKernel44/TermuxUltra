@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string-array name="tab_bar_hide_delay_entries">
+        <item>2 seconds</item>
+        <item>4 seconds</item>
+        <item>8 seconds</item>
+        <item>15 seconds</item>
+        <item>Never</item>
+    </string-array>
+    <string-array name="tab_bar_hide_delay_values">
+        <item>2000</item>
+        <item>4000</item>
+        <item>8000</item>
+        <item>15000</item>
+        <item>0</item>
+    </string-array>
+</resources>

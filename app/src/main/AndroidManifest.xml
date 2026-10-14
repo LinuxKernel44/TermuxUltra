@@ -97,6 +97,12 @@
             tools:targetApi="n" />
 
         <activity
+            android:name=".app.activities.AboutActivity"
+            android:exported="false"
+            android:label="@string/about_title"
+            android:theme="@style/Theme.TermuxApp.DayNight.NoActionBar" />
+
+        <activity
             android:name=".app.activities.SettingsActivity"
             android:exported="true"
             android:label="@string/title_activity_termux_settings"

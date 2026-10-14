@@ -119,6 +119,9 @@ public class TermuxTerminalSessionActivityClient extends TermuxTerminalSessionCl
         if (!mActivity.isVisible()) return;
 
         if (mActivity.getCurrentSession() == changedSession) mActivity.getTerminalView().onScreenUpdated();
+        else mActivity.getTabBarController().markUnread(changedSession);
+
+        mActivity.getSearchController().onTerminalTextChanged(changedSession);
     }
 
     @Override
@@ -199,6 +202,8 @@ public class TermuxTerminalSessionActivityClient extends TermuxTerminalSessionCl
     @Override
     public void onBell(@NonNull TerminalSession session) {
         if (!mActivity.isVisible()) return;
+
+        mActivity.getTabBarController().markUnread(session);
 
         switch (mActivity.getProperties().getBellBehaviour()) {
             case TermuxPropertyConstants.IVALUE_BELL_BEHAVIOUR_VIBRATE:
@@ -293,7 +298,9 @@ public class TermuxTerminalSessionActivityClient extends TermuxTerminalSessionCl
     public void setCurrentSession(TerminalSession session) {
         if (session == null) return;
 
-        if (mActivity.getTerminalView().attachSession(session)) {
+        final boolean hadSession = mActivity.getCurrentSession() != null;
+        final boolean switched = mActivity.getTerminalView().attachSession(session);
+        if (switched) {
             // notify about switched session if not already displaying the session
             notifyOfSessionChange();
         }
@@ -302,6 +309,10 @@ public class TermuxTerminalSessionActivityClient extends TermuxTerminalSessionCl
         // be stale, like current session not selected or scrolled to.
         checkAndScrollToSession(session);
         updateBackgroundColor();
+        mActivity.getSearchController().onCurrentSessionChanged();
+
+        // Show the tab bar for a moment so the user sees which tab is now displayed. Not at startup.
+        if (switched && hadSession) mActivity.getTabBarController().showTemporarily();
     }
 
     void notifyOfSessionChange() {
@@ -383,8 +394,6 @@ public class TermuxTerminalSessionActivityClient extends TermuxTerminalSessionCl
 
             TerminalSession newTerminalSession = newTermuxSession.getTerminalSession();
             setCurrentSession(newTerminalSession);
-
-            mActivity.getDrawer().closeDrawers();
         }
     }
 
@@ -457,17 +466,8 @@ public class TermuxTerminalSessionActivityClient extends TermuxTerminalSessionCl
 
     public void checkAndScrollToSession(TerminalSession session) {
         if (!mActivity.isVisible()) return;
-        TermuxService service = mActivity.getTermuxService();
-        if (service == null) return;
 
-        final int indexOfSession = service.getIndexOfSession(session);
-        if (indexOfSession < 0) return;
-        final ListView termuxSessionsListView = mActivity.findViewById(R.id.terminal_sessions_list);
-        if (termuxSessionsListView == null) return;
-
-        termuxSessionsListView.setItemChecked(indexOfSession, true);
-        // Delay is necessary otherwise sometimes scroll to newly added session does not happen
-        termuxSessionsListView.postDelayed(() -> termuxSessionsListView.smoothScrollToPosition(indexOfSession), 1000);
+        mActivity.getTabBarController().refresh();
     }
 
 

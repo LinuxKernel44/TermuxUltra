@@ -1,0 +1,93 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:orientation="vertical">
+
+    <include
+        layout="@layout/partial_primary_toolbar"
+        android:id="@+id/partial_primary_toolbar" />
+
+    <ScrollView
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:fillViewport="true">
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="vertical"
+            android:padding="20dp">
+
+            <ImageView
+                android:layout_width="96dp"
+                android:layout_height="96dp"
+                android:layout_gravity="center_horizontal"
+                android:contentDescription="@null"
+                android:src="@mipmap/ic_launcher" />
+
+            <TextView
+                android:id="@+id/about_name"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="12dp"
+                android:gravity="center"
+                android:text="@string/application_name"
+                android:textColor="?android:attr/textColorPrimary"
+                android:textSize="24sp"
+                android:textStyle="bold" />
+
+            <TextView
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="4dp"
+                android:gravity="center"
+                android:text="@string/about_tagline"
+                android:textColor="?android:attr/textColorSecondary"
+                android:textSize="14sp" />
+
+            <TextView
+                style="@style/TermuxUltraAboutSection"
+                android:text="@string/about_section_version" />
+
+            <TextView
+                android:id="@+id/about_version_info"
+                style="@style/TermuxUltraAboutBody"
+                android:textIsSelectable="true" />
+
+            <TextView
+                style="@style/TermuxUltraAboutSection"
+                android:text="@string/about_section_links" />
+
+            <LinearLayout
+                android:id="@+id/about_links"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="vertical" />
+
+            <TextView
+                style="@style/TermuxUltraAboutSection"
+                android:text="@string/about_section_credits" />
+
+            <TextView
+                style="@style/TermuxUltraAboutBody"
+                android:text="@string/about_credits_text" />
+
+            <TextView
+                style="@style/TermuxUltraAboutSection"
+                android:text="@string/about_section_system" />
+
+            <TextView
+                android:id="@+id/about_system_info"
+                style="@style/TermuxUltraAboutBody"
+                android:textIsSelectable="true" />
+
+            <Button
+                android:id="@+id/about_copy_button"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="16dp"
+                android:text="@string/about_copy_system_info" />
+        </LinearLayout>
+    </ScrollView>
+</LinearLayout>
