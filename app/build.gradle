@@ -84,10 +84,27 @@ android {
             storePassword 'xrj45yWGLbsO7W0v'
             keyPassword 'xrj45yWGLbsO7W0v'
         }
+
+        // Credentials are read from a file kept outside the repository.
+        // Override its location with the TERMUXULTRA_KEYSTORE_PROPERTIES env variable.
+        release {
+            def propsFile = new File(System.getenv('TERMUXULTRA_KEYSTORE_PROPERTIES') ?:
+                    "${System.getProperty('user.home')}/.android-signing/keystore.properties")
+            if (propsFile.exists()) {
+                def props = new Properties()
+                propsFile.withInputStream { props.load(it) }
+                storeFile file(props['storeFile'])
+                keyAlias props['keyAlias']
+                storePassword props['storePassword']
+                keyPassword props['keyPassword']
+            }
+        }
     }
 
     buildTypes {
         release {
+            if (signingConfigs.release.storeFile != null)
+                signingConfig signingConfigs.release
             minifyEnabled true
             shrinkResources false // Reproducible builds
             proguardFiles getDefaultProguardFile('proguard-android.txt'), 'proguard-rules.pro'
