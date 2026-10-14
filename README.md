@@ -17,6 +17,7 @@ It is currently a lightly customized build of upstream Termux: new name, new lau
 - **Tab bar** instead of the left drawer, see [Tab bar](#tab-bar).
 - **Search** in the terminal history, see [Search](#search).
 - An **About TermuxUltra** screen.
+- An option to **acquire the wake lock whenever Termux is opened**, see [Wake lock](#wake-lock).
 
 Everything else, including the terminal, bootstrap packages and `pkg`, behaves like upstream Termux.
 
@@ -39,6 +40,12 @@ Open it from the tab bar menu or from the long press menu of the terminal.
 - `Aa` makes the search case sensitive, `.*` uses regular expressions.
 - `All tabs` lists the matches of every session, grouped by tab. Tap one to go to that tab and line.
 - `Shell history` searches `~/.bash_history` and `~/.zsh_history`. Tap a command to put it at the prompt without running it, long press to copy it. Bash only writes its history when a shell exits, unless you set `PROMPT_COMMAND="history -a"`.
+
+## Wake lock
+
+Settings > TermuxUltra options > Acquire wake lock when opening Termux. When it is on, the CPU and Wi-Fi wake locks are taken every time Termux is opened, as if you pressed *Acquire wakelock* in the notification. The notification then reads "(wake lock held)" and its button becomes *Release wakelock*, which still releases the lock for the current run. Turning the option on takes effect immediately.
+
+Unlike the notification button, this does not ask to disable battery optimization at every opening.
 
 ## Package name
 

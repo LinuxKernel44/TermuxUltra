@@ -1,7 +1,6 @@
 package com.termux.app.terminal;
 
 import android.annotation.SuppressLint;
-import android.content.Context;
 import android.content.Intent;
 import android.content.SharedPreferences;
 import android.graphics.Color;
@@ -29,6 +28,7 @@ import androidx.core.content.ContextCompat;
 import com.termux.R;
 import com.termux.app.TermuxActivity;
 import com.termux.app.TermuxService;
+import com.termux.app.TermuxUltraPreferences;
 import com.termux.app.activities.AboutActivity;
 import com.termux.app.activities.SettingsActivity;
 import com.termux.shared.activity.ActivityUtils;
@@ -48,10 +48,6 @@ import java.util.Set;
  * and hides itself after a delay without interaction.
  */
 public class TermuxTabBarController implements TermuxTopSwipeLayout.Listener {
-
-    public static final String PREFERENCES_FILE = "termuxultra_prefs";
-    public static final String PREF_HIDE_DELAY_MS = "tab_bar_hide_delay";
-    public static final int DEFAULT_HIDE_DELAY_MS = 4000;
 
     private static final int ANIMATION_DURATION_MS = 180;
     private static final int AUTO_SCROLL_EDGE_DP = 56;
@@ -174,11 +170,12 @@ public class TermuxTabBarController implements TermuxTopSwipeLayout.Listener {
     }
 
     private int getHideDelayMs() {
-        SharedPreferences preferences = mActivity.getSharedPreferences(PREFERENCES_FILE, Context.MODE_PRIVATE);
+        SharedPreferences preferences = TermuxUltraPreferences.get(mActivity);
         try {
-            return Integer.parseInt(preferences.getString(PREF_HIDE_DELAY_MS, String.valueOf(DEFAULT_HIDE_DELAY_MS)));
+            return Integer.parseInt(preferences.getString(TermuxUltraPreferences.KEY_TAB_BAR_HIDE_DELAY_MS,
+                String.valueOf(TermuxUltraPreferences.DEFAULT_TAB_BAR_HIDE_DELAY_MS)));
         } catch (NumberFormatException e) {
-            return DEFAULT_HIDE_DELAY_MS;
+            return TermuxUltraPreferences.DEFAULT_TAB_BAR_HIDE_DELAY_MS;
         }
     }
 

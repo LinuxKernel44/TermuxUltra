@@ -395,6 +395,10 @@ public final class TermuxActivity extends AppCompatActivity implements ServiceCo
 
         mTabBarController.refresh();
 
+        // The service may already be running from an earlier opening, so it is not enough to
+        // do this when the service is created.
+        mTermuxService.acquireWakeLockIfEnabled();
+
         final Intent intent = getIntent();
         setIntent(null);
 

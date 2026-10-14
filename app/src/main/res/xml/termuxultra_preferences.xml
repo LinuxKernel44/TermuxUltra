@@ -14,4 +14,16 @@
 
     </PreferenceCategory>
 
+    <PreferenceCategory
+        app:key="wake_lock"
+        app:title="@string/termuxultra_wake_lock_header">
+
+        <SwitchPreferenceCompat
+            app:defaultValue="false"
+            app:key="wake_lock_on_start"
+            app:summary="@string/termuxultra_wake_lock_on_start_summary"
+            app:title="@string/termuxultra_wake_lock_on_start_title" />
+
+    </PreferenceCategory>
+
 </PreferenceScreen>

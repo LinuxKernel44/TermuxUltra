@@ -272,11 +272,14 @@
     <string name="action_search_terminal">Search</string>
 
     <!-- TermuxUltra: preferences -->
-    <string name="termuxultra_preferences_title">Tab bar</string>
-    <string name="termuxultra_preferences_summary">How long the tab bar stays visible</string>
+    <string name="termuxultra_preferences_title">TermuxUltra options</string>
+    <string name="termuxultra_preferences_summary">Tab bar and wake lock</string>
     <string name="termuxultra_tab_bar_header">Tab bar</string>
     <string name="termuxultra_tab_bar_hide_delay_title">Hide delay</string>
     <string name="termuxultra_tab_bar_hide_delay_summary">The tab bar hides itself after %s without interaction.</string>
+    <string name="termuxultra_wake_lock_header">Wake lock</string>
+    <string name="termuxultra_wake_lock_on_start_title">Acquire wake lock when opening Termux</string>
+    <string name="termuxultra_wake_lock_on_start_summary">Keeps the CPU and Wi-Fi awake, like the Acquire wakelock button of the notification. The notification shows the state and its button releases the lock.</string>
     <string name="termuxultra_about_preference_title">About TermuxUltra</string>
 
     <!-- TermuxUltra: about screen -->

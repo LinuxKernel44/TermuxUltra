@@ -119,6 +119,8 @@ public final class TermuxService extends Service implements AppShell.AppShellCli
 
         runStartForeground();
 
+        acquireWakeLockIfEnabled();
+
         SystemEventReceiver.registerPackageUpdateEvents(this);
     }
 
@@ -144,7 +146,7 @@ public final class TermuxService extends Service implements AppShell.AppShellCli
                     break;
                 case TERMUX_SERVICE.ACTION_WAKE_LOCK:
                     Logger.logDebug(LOG_TAG, "ACTION_WAKE_LOCK intent received");
-                    actionAcquireWakeLock();
+                    actionAcquireWakeLock(true);
                     break;
                 case TERMUX_SERVICE.ACTION_WAKE_UNLOCK:
                     Logger.logDebug(LOG_TAG, "ACTION_WAKE_UNLOCK intent received");
@@ -300,9 +302,22 @@ public final class TermuxService extends Service implements AppShell.AppShellCli
 
 
 
+    /**
+     * Acquire the WakeLocks if the user chose to hold them whenever Termux is opened. Does nothing
+     * if they are already held. The notification is updated to show the held state.
+     */
+    public synchronized void acquireWakeLockIfEnabled() {
+        if (mWakeLock != null) return;
+        if (!TermuxUltraPreferences.shouldAcquireWakeLockOnStart(this)) return;
+
+        Logger.logDebug(LOG_TAG, "Acquiring WakeLocks since the wake lock on start preference is enabled");
+        // Do not show the battery optimization dialog at every opening of the app.
+        actionAcquireWakeLock(false);
+    }
+
     /** Process action to acquire Power and Wi-Fi WakeLocks. */
     @SuppressLint({"WakelockTimeout", "BatteryLife"})
-    private void actionAcquireWakeLock() {
+    private void actionAcquireWakeLock(boolean requestBatteryOptimizationExemption) {
         if (mWakeLock != null) {
             Logger.logDebug(LOG_TAG, "Ignoring acquiring WakeLocks since they are already held");
             return;
@@ -319,7 +334,7 @@ public final class TermuxService extends Service implements AppShell.AppShellCli
         mWifiLock = wm.createWifiLock(WifiManager.WIFI_MODE_FULL_HIGH_PERF, TermuxConstants.TERMUX_APP_NAME.toLowerCase());
         mWifiLock.acquire();
 
-        if (!PermissionUtils.checkIfBatteryOptimizationsDisabled(this)) {
+        if (requestBatteryOptimizationExemption && !PermissionUtils.checkIfBatteryOptimizationsDisabled(this)) {
             PermissionUtils.requestDisableBatteryOptimizations(this);
         }
 
