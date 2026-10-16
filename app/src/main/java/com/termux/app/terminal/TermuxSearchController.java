@@ -197,8 +197,9 @@ public class TermuxSearchController {
             return;
         }
         mOpen = true;
-        mTabBarController.setSearchMode(true);
+        // Visible first, so the terminal can be pushed down by the height of the search bar.
         mSearchBar.setVisibility(View.VISIBLE);
+        mTabBarController.setSearchMode(true);
         mResultsExpanded = true;
         focusInput();
         runSearch(true);

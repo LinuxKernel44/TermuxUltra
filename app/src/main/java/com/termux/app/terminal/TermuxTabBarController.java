@@ -15,6 +15,7 @@ import android.view.MotionEvent;
 import android.view.View;
 import android.view.ViewConfiguration;
 import android.view.ViewGroup;
+import android.widget.FrameLayout;
 import android.widget.HorizontalScrollView;
 import android.widget.ImageButton;
 import android.widget.LinearLayout;
@@ -35,6 +36,7 @@ import com.termux.shared.activity.ActivityUtils;
 import com.termux.shared.termux.interact.TextInputDialogUtils;
 import com.termux.shared.termux.shell.command.runner.terminal.TermuxSession;
 import com.termux.terminal.TerminalSession;
+import com.termux.view.TerminalView;
 
 import java.util.ArrayList;
 import java.util.HashSet;
@@ -50,6 +52,8 @@ import java.util.Set;
 public class TermuxTabBarController implements TermuxTopSwipeLayout.Listener {
 
     private static final int ANIMATION_DURATION_MS = 180;
+    /** Matches the height of the tab bar in view_tab_bar.xml. */
+    private static final int TAB_BAR_HEIGHT_DP = 44;
     private static final int AUTO_SCROLL_EDGE_DP = 56;
     private static final int AUTO_SCROLL_STEP_DP = 8;
 
@@ -57,6 +61,8 @@ public class TermuxTabBarController implements TermuxTopSwipeLayout.Listener {
     private final TermuxTopSwipeLayout mContainer;
     private final View mOverlay;
     private final View mTabBar;
+    private final View mSearchBar;
+    private final TerminalView mTerminalView;
     private final HorizontalScrollView mScroll;
     private final LinearLayout mTabs;
     private final float mDensity;
@@ -73,6 +79,9 @@ public class TermuxTabBarController implements TermuxTopSwipeLayout.Listener {
     private boolean mDragging = false;
     private boolean mRefreshPending = false;
 
+    /** How far the terminal is pushed down by the bar, in pixels. */
+    private int mPushPx = 0;
+
     /** Sessions with new output that was not seen yet. */
     private final Set<TerminalSession> mUnread = new HashSet<>();
 
@@ -82,11 +91,19 @@ public class TermuxTabBarController implements TermuxTopSwipeLayout.Listener {
         mContainer = activity.findViewById(R.id.terminal_container);
         mOverlay = activity.findViewById(R.id.top_overlay);
         mTabBar = activity.findViewById(R.id.tab_bar);
+        mSearchBar = activity.findViewById(R.id.search_bar);
+        mTerminalView = activity.getTerminalView();
         mScroll = activity.findViewById(R.id.tab_bar_scroll);
         mTabs = activity.findViewById(R.id.tab_bar_tabs);
 
         mContainer.setListener(this);
         mContainer.setOverlay(mOverlay);
+        mContainer.setZoneProvider(() -> dp(TermuxUltraPreferences.getTabBarSwipeZoneDp(mActivity)));
+
+        // The search bar can change height, for example when its toggles wrap.
+        mSearchBar.addOnLayoutChangeListener((v, l, t, r, b, ol, ot, or, ob) -> {
+            if (mSearchMode && b - t != ob - ot) updatePush(true);
+        });
 
         mOverlay.addOnLayoutChangeListener((v, l, t, r, b, ol, ot, or, ob) -> {
             if (!mShown) mOverlay.setTranslationY(-mOverlay.getHeight());
@@ -129,6 +146,7 @@ public class TermuxTabBarController implements TermuxTopSwipeLayout.Listener {
         mOverlay.animate().cancel();
         mOverlay.setVisibility(View.VISIBLE);
         mOverlay.animate().translationY(0).alpha(1f).setDuration(ANIMATION_DURATION_MS).setListener(null);
+        updatePush(true);
         refresh();
         scheduleHide();
     }
@@ -137,6 +155,7 @@ public class TermuxTabBarController implements TermuxTopSwipeLayout.Listener {
         mHandler.removeCallbacks(mHideRunnable);
         if (!mShown || mSearchMode || mMenuOpen || mDragging) return;
         mShown = false;
+        updatePush(true);
         mOverlay.animate().cancel();
         mOverlay.animate().translationY(-mOverlay.getHeight()).alpha(0f).setDuration(ANIMATION_DURATION_MS)
             .withEndAction(() -> {
@@ -147,7 +166,9 @@ public class TermuxTabBarController implements TermuxTopSwipeLayout.Listener {
     public void toggle() {
         if (mShown) {
             // Hide right away, the pending state of menus or search is not relevant to a toggle.
+            if (mSearchController != null && mSearchController.isOpen()) mSearchController.close();
             mSearchMode = false;
+            mMenuOpen = false;
             hide();
         } else {
             show();
@@ -194,6 +215,45 @@ public class TermuxTabBarController implements TermuxTopSwipeLayout.Listener {
             refresh();
             scheduleHide();
         }
+        updatePush(true);
+    }
+
+    /**
+     * Push the terminal down by the height of the bar that is shown, so that the bar does not hide
+     * the first lines. The terminal is resized once, right away, and the move is animated with a
+     * translation so the shell does not get a new size at every frame of the animation.
+     */
+    private void updatePush(boolean animate) {
+        int target = 0;
+        if (mShown) {
+            if (mSearchMode) {
+                // Measure instead of reading the height, the search bar may not be laid out yet.
+                mSearchBar.measure(
+                    View.MeasureSpec.makeMeasureSpec(mContainer.getWidth(), View.MeasureSpec.EXACTLY),
+                    View.MeasureSpec.makeMeasureSpec(0, View.MeasureSpec.UNSPECIFIED));
+                target = mSearchBar.getMeasuredHeight();
+            } else {
+                target = dp(TAB_BAR_HEIGHT_DP);
+            }
+        }
+        if (target == mPushPx) return;
+
+        final int previous = mPushPx;
+        mPushPx = target;
+
+        FrameLayout.LayoutParams params = (FrameLayout.LayoutParams) mTerminalView.getLayoutParams();
+        params.topMargin = target;
+        mTerminalView.setLayoutParams(params);
+
+        mTerminalView.animate().cancel();
+        if (animate) {
+            // Keep the terminal where it is on screen, and let it slide to its new place.
+            float visualTop = previous + mTerminalView.getTranslationY();
+            mTerminalView.setTranslationY(visualTop - target);
+            mTerminalView.animate().translationY(0).setDuration(ANIMATION_DURATION_MS).setListener(null);
+        } else {
+            mTerminalView.setTranslationY(0);
+        }
     }
 
     @Override
@@ -202,9 +262,18 @@ public class TermuxTabBarController implements TermuxTopSwipeLayout.Listener {
     }
 
     @Override
-    public void onSwipeUpOnOverlay() {
-        if (mSearchMode) return;
+    public void onSwipeUpToHide() {
         hide();
+    }
+
+    @Override
+    public boolean canSwipeDownToShow() {
+        return !mShown;
+    }
+
+    @Override
+    public boolean canSwipeUpToHide() {
+        return mShown && !mSearchMode;
     }
 
     @Override

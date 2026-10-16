@@ -273,10 +273,15 @@
 
     <!-- TermuxUltra: preferences -->
     <string name="termuxultra_preferences_title">TermuxUltra options</string>
-    <string name="termuxultra_preferences_summary">Tab bar and wake lock</string>
+    <string name="termuxultra_preferences_summary">Tab bar, keys and wake lock</string>
     <string name="termuxultra_tab_bar_header">Tab bar</string>
     <string name="termuxultra_tab_bar_hide_delay_title">Hide delay</string>
     <string name="termuxultra_tab_bar_hide_delay_summary">The tab bar hides itself after %s without interaction.</string>
+    <string name="termuxultra_tab_bar_swipe_zone_title">Swipe zone height (dp)</string>
+    <string name="termuxultra_tab_bar_swipe_zone_summary">A vertical swipe that starts in this zone at the top of the terminal shows the tab bar, and hides it when it is shown. A taller zone is easier to reach but takes over the scrolling there.</string>
+    <string name="termuxultra_keys_header">Keys</string>
+    <string name="termuxultra_normal_volume_keys_title">Normal volume keys</string>
+    <string name="termuxultra_normal_volume_keys_summary">Off (default): volume down works as Ctrl and volume up as Fn. On: both buttons change the volume of the phone while TermuxUltra is open. When on, this takes priority over the volume-keys setting of termux.properties.</string>
     <string name="termuxultra_wake_lock_header">Wake lock</string>
     <string name="termuxultra_wake_lock_on_start_title">Acquire wake lock when opening Termux</string>
     <string name="termuxultra_wake_lock_on_start_summary">Keeps the CPU and Wi-Fi awake, like the Acquire wakelock button of the notification. The notification shows the state and its button releases the lock.</string>

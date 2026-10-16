@@ -18,6 +18,7 @@ It is currently a lightly customized build of upstream Termux: new name, new lau
 - **Search** in the terminal history, see [Search](#search).
 - An **About TermuxUltra** screen.
 - An option to **acquire the wake lock whenever Termux is opened**, see [Wake lock](#wake-lock).
+- An option to keep the **volume keys normal** instead of Ctrl and Fn (Settings > TermuxUltra options > Keys, off by default).
 
 Everything else, including the terminal, bootstrap packages and `pkg`, behaves like upstream Termux.
 
@@ -25,7 +26,9 @@ Everything else, including the terminal, bootstrap packages and `pkg`, behaves l
 
 The sessions are tabs in a bar over the top of the terminal. The left drawer is gone.
 
-- Swipe down from the top edge of the terminal to show the bar. Swipe up on it to hide it. It hides itself after a few seconds, the delay is set in Settings > Tab bar.
+- Swipe down from the top of the terminal to show the bar, and swipe up from the same zone to hide it. The height of that zone is set in Settings > TermuxUltra options (24 to 240 dp, 48 by default).
+- The bar pushes the terminal down while it is shown and the terminal grows back when it hides, so nothing is covered. The search bar does the same, only the list of results is drawn over the terminal.
+- It hides itself after a few seconds, the delay is set in the same settings.
 - It appears for a moment when you switch to another session.
 - Tap a tab to open it, tap its cross to close it. Closing a tab with a running process asks for confirmation.
 - Long press a tab for rename, kill and close. Long press then drag to reorder the tabs.

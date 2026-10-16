@@ -11,31 +11,41 @@ import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 
 /**
- * A {@link FrameLayout} that detects a vertical swipe starting at its top edge, to reveal the tab
- * bar, and an upward swipe on the overlay, to hide it again. All other touches are left untouched
- * so scrolling and selecting in the terminal keep working.
+ * A {@link FrameLayout} that detects a vertical swipe starting in a zone at its top, a swipe down
+ * to reveal the tab bar and a swipe up to hide it again. All other touches are left untouched so
+ * scrolling and selecting in the terminal keep working.
  */
 public class TermuxTopSwipeLayout extends FrameLayout {
 
     public interface Listener {
-        /** A swipe down that started on the top edge of the terminal. */
+        /** A swipe down that started in the top zone. */
         void onSwipeDownFromTop();
 
-        /** An upward swipe that started on the overlay. */
-        void onSwipeUpOnOverlay();
+        /** An upward swipe that started in the top zone, or on the overlay. */
+        void onSwipeUpToHide();
+
+        /** Whether a swipe down in the top zone should be taken, which is when the overlay is hidden. */
+        boolean canSwipeDownToShow();
+
+        /** Whether a swipe up in the top zone should be taken, which is when the overlay is shown. */
+        boolean canSwipeUpToHide();
 
         /** A finger started or stopped touching the overlay. */
         void onOverlayTouchChanged(boolean touching);
     }
 
-    private static final int TOP_EDGE_DP = 48;
+    /** Provides the height in pixels of the zone at the top where the swipes start. */
+    public interface ZoneProvider {
+        int getTopZonePx();
+    }
 
     @Nullable private Listener mListener;
     @Nullable private View mOverlay;
     private boolean mGestureEnabled = true;
 
     private final int mTouchSlop;
-    private final int mTopEdgePx;
+    @Nullable private ZoneProvider mZoneProvider;
+    private int mTopEdgePx;
 
     private boolean mTracking;
     private boolean mStartedOnOverlay;
@@ -45,7 +55,12 @@ public class TermuxTopSwipeLayout extends FrameLayout {
     public TermuxTopSwipeLayout(@NonNull Context context, @Nullable AttributeSet attrs) {
         super(context, attrs);
         mTouchSlop = ViewConfiguration.get(context).getScaledTouchSlop();
-        mTopEdgePx = Math.round(TOP_EDGE_DP * context.getResources().getDisplayMetrics().density);
+        mTopEdgePx = Math.round(48 * context.getResources().getDisplayMetrics().density);
+    }
+
+    /** Set where the height of the top zone is read, each time a touch starts. */
+    public void setZoneProvider(@Nullable ZoneProvider provider) {
+        mZoneProvider = provider;
     }
 
     public void setListener(@Nullable Listener listener) {
@@ -92,6 +107,7 @@ public class TermuxTopSwipeLayout extends FrameLayout {
         switch (ev.getActionMasked()) {
             case MotionEvent.ACTION_DOWN:
                 mIntercepting = false;
+                if (mZoneProvider != null) mTopEdgePx = mZoneProvider.getTopZonePx();
                 mTracking = mStartedOnOverlay || ev.getY() <= mTopEdgePx;
                 mDownX = ev.getX();
                 mDownY = ev.getY();
@@ -102,10 +118,10 @@ public class TermuxTopSwipeLayout extends FrameLayout {
                 final float dx = ev.getX() - mDownX;
                 final float dy = ev.getY() - mDownY;
                 if (Math.abs(dy) > mTouchSlop * 2 && Math.abs(dy) > Math.abs(dx) * 1.5f) {
-                    if (mStartedOnOverlay && dy < 0) {
+                    if (dy < 0 && mListener.canSwipeUpToHide()) {
                         mIntercepting = true;
-                        mListener.onSwipeUpOnOverlay();
-                    } else if (!mStartedOnOverlay && dy > 0) {
+                        mListener.onSwipeUpToHide();
+                    } else if (dy > 0 && !mStartedOnOverlay && mListener.canSwipeDownToShow()) {
                         mIntercepting = true;
                         mListener.onSwipeDownFromTop();
                     } else {
